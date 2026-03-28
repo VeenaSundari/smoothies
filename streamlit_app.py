@@ -1,8 +1,10 @@
 import streamlit as st
-from snowflake.snowpark.context import get_active_session
+import snowflake.connector
 from snowflake.snowpark.functions import col
+from snowflake.snowpark import Session
 
-session = get_active_session()
+cnx = st.connection("snowflake")
+session = cnx.session()
 
 st.header('🥤 Customize Your Smoothie! 🥤')
 st.write('Choose the fruits you want in your custom Smoothie!')
