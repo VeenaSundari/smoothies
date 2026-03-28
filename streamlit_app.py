@@ -1,10 +1,4 @@
 import streamlit as st
-import snowflake.connector
-from snowflake.snowpark.functions import col
-from snowflake.snowpark import Session
-
-cnx = st.connection("snowflake")
-session = cnx.session()
 
 st.header('🥤 Customize Your Smoothie! 🥤')
 st.write('Choose the fruits you want in your custom Smoothie!')
@@ -12,17 +6,18 @@ st.write('Choose the fruits you want in your custom Smoothie!')
 name_on_order = st.text_input('Name on Smoothie:')
 st.write('The name on your Smoothie will be:', name_on_order)
 
-my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
+cnx = st.connection("snowflake")
+session = cnx.session()
+my_dataframe = session.sql("SELECT FRUIT_NAME FROM SMOOTHIES.PUBLIC.FRUIT_OPTIONS").to_pandas()
 
 ingredients_list = st.multiselect(
     'Choose up to 5 ingredients:',
-    my_dataframe,
+    my_dataframe['FRUIT_NAME'].tolist(),
     max_selections=5
 )
 
 if ingredients_list:
     ingredients_string = ''
-
     for fruit_chosen in ingredients_list:
         ingredients_string += fruit_chosen + ' '
 
@@ -32,7 +27,6 @@ if ingredients_list:
     st.write(my_insert_stmt)
 
     time_to_insert = st.button('Submit Order')
-
     if time_to_insert:
         session.sql(my_insert_stmt).collect()
         st.success('Your Smoothie is ordered, ' + name_on_order + '!', icon="✅")
